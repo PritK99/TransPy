@@ -43,3 +43,8 @@ class PositionalEncoding(nn.Module):
         x = x + (self.pe[:, :x.shape[1],:]).requires_grad_(False)
         return self.dropout(x)
 
+class LayerNorm(nn.Module):
+    def __init__(self, epsilon=10**-6):
+        self.epsilon = epsilon
+        self.alpha = nn.Parameter(torch.ones(1))
+        self.beta = nn.Parameter(torch.zeros(1))
