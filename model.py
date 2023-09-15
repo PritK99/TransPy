@@ -45,6 +45,22 @@ class PositionalEncoding(nn.Module):
 
 class LayerNorm(nn.Module):
     def __init__(self, epsilon=10**-6):
+        super().__init__()
         self.epsilon = epsilon
         self.alpha = nn.Parameter(torch.ones(1))
         self.beta = nn.Parameter(torch.zeros(1))
+    
+    def forward(self, x):
+        mean = x.mean(dim = -1, keepdim = True)
+        std = x.std(dim = -1, keepdim = True)
+        return (self.alpha)*((x - mean)/(std + self.epsilon)) + self.beta
+    
+class FeedForward(nn.Module):
+    def __init__(self, embedding_dim, d_ff, dropout):
+        super().__init__()
+        self.linear_1 = nn.Linear(embedding_dim, d_ff)
+        self.dropout = nn.Dropout(dropout)
+        self.linear_2 = nn.Linear(d_ff, embedding_dim)
+    
+    def forward(self, x):
+        return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))
