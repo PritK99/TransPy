@@ -1,2 +1,2 @@
 # Transformers
-Implementing Transformer from scratch on PyTorch
+Implementing a Transformer model from scratch in PyTorch
