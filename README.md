@@ -32,7 +32,8 @@ Building a custom Transformer model from scratch in PyTorch for English-to-Spani
 
 ## References
 * <a href="https://www.youtube.com/watch?v=ISNdQcPhsts&t=2729s">Link</a> to the YouTube video by Umar Jamil.
-* <a href="https://arxiv.org/abs/1706.03762">Link</a> to 'Attention is all you need' paper explaining transformer architecture
+* <a href="https://arxiv.org/abs/1706.03762">Link</a> to ```Attention is all you need``` paper explaining transformer architecture
+* <a href="https://huggingface.co/datasets/opus_books">Link</a> to ```opus_books``` dataset by huggingface
  
 ## License
 [MIT License](https://opensource.org/licenses/MIT)
