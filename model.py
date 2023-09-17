@@ -11,6 +11,7 @@ class InputEmbeddings(nn.Module):
         self.embeddings = nn.Embedding(vocab_size, embedding_dim)
 
     def forward(self, x):
+        # Multiplying by sqrt(embedding_dim) as given in paper
         return self.embeddings(x)*math.sqrt(self.embedding_dim)
 
 class PositionalEncoding(nn.Module):
@@ -51,6 +52,7 @@ class LayerNorm(nn.Module):
         self.beta = nn.Parameter(torch.zeros(1))
     
     def forward(self, x):
+        # Performing Layer Normalization where we make mean of all activations for given layer equal to 0 and standard deviation approximately equal to 1 which helps to train more stably
         mean = x.mean(dim = -1, keepdim = True)
         std = x.std(dim = -1, keepdim = True)
         return (self.alpha)*((x - mean)/(std + self.epsilon)) + self.beta
@@ -58,6 +60,7 @@ class LayerNorm(nn.Module):
 class FeedForwardBlock(nn.Module):
     def __init__(self, embedding_dim, d_ff, dropout):
         super().__init__()
+        # Feed forward block is simple neural network of 3 layers (embedding_dim, d_ff, embedding_dim)
         self.linear_1 = nn.Linear(embedding_dim, d_ff)
         self.dropout = nn.Dropout(dropout)
         self.linear_2 = nn.Linear(d_ff, embedding_dim)
@@ -66,6 +69,7 @@ class FeedForwardBlock(nn.Module):
         return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))
     
 class MultiHeadAttentionBlock(nn.Module):
+    # Definition of Multi-Head attention blocks
     def __init__(self, embedding_dim, num_heads, dropout):
         super().__init__()
         self.embedding_dim = embedding_dim
@@ -82,6 +86,7 @@ class MultiHeadAttentionBlock(nn.Module):
 
         self.w_o = nn.Linear(embedding_dim, embedding_dim)
 
+    # Static method allows us to call this function without defining an object
     @staticmethod
     def attention(query, key, value, mask, dropout: nn.Dropout):
         d_k = query[-1]
@@ -97,12 +102,10 @@ class MultiHeadAttentionBlock(nn.Module):
 
     def forward(self, k, q, v, mask = None):
 
-        # (batch, seq_len, embedding_dim) -> (batch, seq_len, embedding_dim)
         key = self.w_k(k)
         query = self.w_q(q)
         value = self.w_v(v)
         
-        # (batch, seq_len, embedding_dim) -> (batch, seq_len, num_heads, d_k) -> (batch, num_heads, seq_len, d_k)
         key = key.view(key.shape[0], key.shape[1], self.num_heads, self.d_k).transpose(1,2)
         query = query.view(query.shape[0], query.shape[1], self.num_heads, self.d_k).transpose(1,2)
         value = value.view(value.shape[0], value.shape[1], self.num_heads, self.d_k).transpose(1,2)
@@ -114,6 +117,7 @@ class MultiHeadAttentionBlock(nn.Module):
         return self.w_o(x)
     
 class ResidualConnection(nn.module):
+    # Residual connections help us to tackle vanishing gradients problem
     def __init__(self, dropout):
         super().__init__()
         self.norm = LayerNorm()
@@ -123,6 +127,7 @@ class ResidualConnection(nn.module):
         return x + self.dropout(sublayer(self.norm(x)))
     
 class EncoderBlock(nn.Module):
+    # Definition of one encoder block
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float) -> None:
         super().__init__()
         self.self_attention_block = self_attention_block
@@ -130,11 +135,13 @@ class EncoderBlock(nn.Module):
         self.residual_connections = nn.ModuleList([ResidualConnection(dropout) for _ in range(2)])
 
     def forward(self, x, src_mask):
+        # We pass lambda function here which indicates x is taken as input and used as parameter. lambda function allows us to customize this for different cases, such as cross-attention-block which is defined in decoder
         x = self.residual_connections[0](x, lambda x: self.self_attention_block(x,x,x,src_mask))
         x = self.residual_connections[1](x, self.feed_forward_block)
         return x
     
 class Encoder(nn.Module):
+    # Collection of N encoder blocks stacked together
     def __init__(self, layers: nn.ModuleList):
         super().__init__()
         self.layers = layers
@@ -146,6 +153,7 @@ class Encoder(nn.Module):
         return self.norm(x)
 
 class DecoderBlock(nn.Module):
+    # Definition of one decoder block
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, cross_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float) -> None:
         super().__init__()
         self.self_attention_block = self_attention_block
@@ -155,11 +163,12 @@ class DecoderBlock(nn.Module):
     
     def forward(self, x, encoder_output, src_mask, target_mask):
         x = self.residual_connections[0](x, lambda x: self.self_attention_block(x,x,x,target_mask))
-        x = self.residual_connections[1](x, self.cross_attention_block(x, encoder_output, encoder_output, src_mask))
+        x = self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, src_mask))
         x = self.residual_connections[2](x, self.feed_forward_block)
         return x
 
 class Decoder(nn.Module):
+    # Collection of N decoder blocks stacked together
     def __init__(self, layers: nn.ModuleList) -> None:
         super().__init__()
         self.layers = layers
@@ -171,6 +180,7 @@ class Decoder(nn.Module):
         return self.norm(x)
     
 class ProjectionLayer(nn.Module):
+    # The linear layer helps to output target word from given embedding
     def __init__(self, embedding_dim: int, vocab_size: int) -> None:
         super().__init__()
         self.proj = nn.Linear(embedding_dim, vocab_size)
@@ -179,6 +189,7 @@ class ProjectionLayer(nn.Module):
         return torch.log_softmax(self.proj(x), dim=-1)
     
 class Transformer(nn.Module):
+    # Definition of transformer architecture
     def __init__(self, encoder: Encoder, decoder: Decoder, src_embeddings: InputEmbeddings, target_embeddings: InputEmbeddings, src_pos: PositionalEncoding, target_pos: PositionalEncoding, projection: ProjectionLayer):
         super().__init__()
         self.encoder = encoder
@@ -202,6 +213,7 @@ class Transformer(nn.Module):
     def project (self, x):
         return self.projection(x)
 
+# Driver function to build transformer object
 def build_transformer(src_vocab_size: int, target_vocab_size: int, src_seq_len: int, target_seq_len: int, embedding_dim: int = 512, num_blocks: int = 6, num_heads: int = 8, dropout: float = 0.1, d_ff: int = 2048):
 
     src_embedding = InputEmbeddings(embedding_dim, src_vocab_size)
