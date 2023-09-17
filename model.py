@@ -246,6 +246,7 @@ def build_transformer(src_vocab_size: int, target_vocab_size: int, src_seq_len: 
 
     transformer = Transformer(encoder, decoder, src_embedding, target_embedding, src_pos, target_pos, projection_layer)
 
+    # xavier_uniform allows us initialize our matrix parameters such that it reduces vanishing gradient problem
     for p in transformer.parameters():
         if p.dim > 1:
             nn.init.xavier_uniform_(p)
