@@ -23,9 +23,10 @@ Building a custom Transformer model from scratch in PyTorch for English-to-Spani
 👨‍💻Transformers-from-Scratch
  ┣ 📂assets                            // Contains all the reference gifs, images
  ┣ 📂documentation                     // Contains documentation and my notes on transformers
- ┃ ┣ 📄Transformers.pdf
  ┃ ┣ 📄README.md
  ┣ 📄model.py                          // Code for Transformer Architecture
+ ┣ 📄train.py                          // Tokenizers
+ ┣ 📄dataset.py                        // Datasets  
  ┣ 📄README.md
      
 ``` 
