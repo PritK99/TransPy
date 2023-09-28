@@ -36,11 +36,11 @@ Additionally, Self Attention does not require any new learnable parameters since
 
 Multi-Head Attention is performing Self Attention multiple times. This allows us to compute a richer attention vector. Here, the intuition is that different heads would pose different questions and hence understand a different ascpect of input sequence.
 
+<img src="../assets/Multi-Head Attention.jpg" alt="Multi Head Attention">
+
 Unlike Self Attention, we use weight matrices ```Wq```, ```Wk```, ```Wv``` to compute ```Q```, ```K```, ```V```.
 
 Additionally, we feed the entire input sequence to all the heads. However the embeddings that all these heads see are different. This is what leads them to understand different aspects of input sequence.
-
-<img src="../assets/Multi-Head Attention.jpg" alt="Multi Head Attention">
 
 ## Transformer Architecture
 
