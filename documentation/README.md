@@ -42,11 +42,29 @@ Unlike Self Attention, we use weight matrices ```Wq```, ```Wk```, ```Wv``` to co
 
 Additionally, we feed the entire input sequence to all the heads. However the embeddings that all these heads see are different. This is what leads them to understand different aspects of input sequence.
 
+Q: intresting questions about the words in sentence
+K: qualities of words 
+V: specific representation of the word
+
 ## Transformer Architecture
 
 <img src = "../assets/Transformer-architecture.png" alt = "Transformer-Architecture">
 
+## Positional Encoding
+
+In sequence to sequence tasks, the relative order of your data is extremely important to its meaning. Consider the following example where change in order of data leads to different meaning.
+
+Sequence 1: ```The cat chased the mouse.```
+
+Sequence 2: ```The mouse chased the cat.```
+
+In case of RNNs, the order was maintained by recurrence. However, in transformers we eliminated recurrence by squashing input together. Thus, we make use of positional encodings which allow transformers to capture positional information.
+
+The equation for positional encodings is: 
+
+<img src = "../assets/Positional.png" alt = "Positional Encoding">
+
 ## References
 
 * <a href="https://github.com/hkproj/transformer-from-scratch-notes/tree/main">GitHub Link</a> to transformers-from-scratch-notes repository.
-* ```Sequence Models``` course by deeplearning.ai on coursera.
+* Sequence Models course by deeplearning.ai on coursera.
