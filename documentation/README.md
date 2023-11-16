@@ -1,16 +1,34 @@
 # Transformers: Attention is all you need
 
+![Transformer Architecture](../assets/Transformer-architecture.png)
+
 ## Introduction
+
+A neural network is nothing but a function, which maps the input ```x``` to output ```y```
+
+Neural Networks: ```y = f(x)```
+
+However, when we deal with sequential data, our output depends on the sequence of input. Hence, we make use of Reccurent Neural Networks (RNN's).
+
+Reccurent Neural Networks: ```y = f(x(t), h(t-1))```
 
 In order to improve the RNN architecture, which faces issues such as vanishing gradients, architectures such as GRUs and LSTMs were intorduced. Compared to RNN, these models could capture long term context. However, these are still sequential models. There is this notion of reccurence which acts as a bottleneck for computations. Furthermore, parallelization is not possible. 
 
-The transformer architecture is based on ideas of attention and CNNs. The key concepts include:
+Sequence Transduction often involves converting a sequence of input data into a corresponding sequence of output data. This is useful for applications such as Machine Translation, Text Summarization etc. The encoder-decoder model is widely used for such Sequence Transduction tasks. Transformer architecture involves connecting encoder and decoder through Attention mechanism.
 
-* embeddings and positional encodings
+The transformer architecture is based on ideas of attention and CNNs. The encoder maps an input sequence of symbol representations (x1, ..., xn) to a sequence of continuous representations z = (z1, ..., zn). Given z, the decoder then generates an output sequence (y1, ..., ym) of symbols one element at a time.
+
+The fundamental blocks of transformer architecture are:
+
+* Embeddings and Positional Encodings
 * Self Attention
 * Multi-Head Attention
 
 ## Embeddings and Positional Encodings
+
+### Embeddings
+
+![Embeddings](../assets/Embeddings.png)
 
 ## Self Attention
 

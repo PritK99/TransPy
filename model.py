@@ -1,10 +1,26 @@
+
 import torch
 import torch.nn as nn
 import math
 
-class InputEmbeddings(nn.Module):
 
-    def __init__(self, embedding_dim, vocab_size):
+class InputEmbeddings(nn.Module):
+    """
+    Input Embeddings module
+
+    This module initializes an embedding layer for representing input sequences. It scales the embeddings by the square root of the embedding dimension. 
+
+    Parameters:
+        - embedding_dim (int): The dimensionality of the input embeddings.
+        - vocab_size (int): The size of the vocabulary, i.e., the maximum number of input tokens.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor representing the input tokens.
+
+    Forward Output:
+        - embeddings (torch.Tensor): Input embeddings scaled by sqrt(embedding_dim).
+    """
+    def __init__(self, embedding_dim: int, vocab_size: int):
         super().__init__()
         self.embedding_dim = embedding_dim
         self.vocab_size = vocab_size
@@ -15,7 +31,21 @@ class InputEmbeddings(nn.Module):
         return self.embeddings(x)*math.sqrt(self.embedding_dim)
 
 class PositionalEncoding(nn.Module):
+    """
+    Positional Embedding module for use in transformer architectures.
 
+    This module initializes an embedding layer for representing the positional information of input sequences. It scales the embeddings by the square root of the embedding dimension, as suggested in the original transformer paper.
+
+    Parameters:
+        - embedding_dim (int): The dimensionality of the positional embeddings.
+        - vocab_size (int): The size of the vocabulary, i.e., the maximum number of positions.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor representing the positions to be embedded.
+
+    Forward Output:
+        - embeddings (torch.Tensor): Positional embeddings scaled by sqrt(embedding_dim).
+    """
     def __init__(self, embedding_dim, seq_len, dropout):
         super().__init__()
         self.embedding_dim = embedding_dim
