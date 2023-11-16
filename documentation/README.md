@@ -1,5 +1,9 @@
 # Transformers: Attention is all you need
 
+<p align="center">
+    <img src="../assets/Transformer-architecture.png" alt="Transformer Architecture">
+</p>
+
 ![Transformer Architecture](../assets/Transformer-architecture.png)
 
 ## Introduction
