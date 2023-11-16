@@ -4,8 +4,6 @@
     <img src="../assets/Transformer-architecture.png" alt="Transformer Architecture">
 </p>
 
-![Transformer Architecture](../assets/Transformer-architecture.png)
-
 ## Introduction
 
 A neural network is nothing but a function, which maps the input ```x``` to output ```y```
