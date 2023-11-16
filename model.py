@@ -8,7 +8,7 @@ class InputEmbeddings(nn.Module):
     """
     Input Embeddings module
 
-    This module initializes an embedding layer for representing input sequences. It scales the embeddings by the square root of the embedding dimension. 
+    This module initializes an embedding layer for representing input sequences. It scales the embeddings by the square root of the embedding dimension.
 
     Parameters:
         - embedding_dim (int): The dimensionality of the input embeddings.
@@ -27,7 +27,6 @@ class InputEmbeddings(nn.Module):
         self.embeddings = nn.Embedding(vocab_size, embedding_dim)
 
     def forward(self, x):
-        # Multiplying by sqrt(embedding_dim) as given in paper
         return self.embeddings(x)*math.sqrt(self.embedding_dim)
 
 class PositionalEncoding(nn.Module):

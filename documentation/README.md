@@ -30,7 +30,16 @@ The fundamental blocks of transformer architecture are:
 
 ### Embeddings
 
+Neural Networks can understand patterns in anything but numbers. Hence we need to convert our input to a vector. There are two ways to map input sequence to vectors:
+
+* One-hot vector encodings
+* Word Embeddings
+
+The idea behind word embeddings is that the number of rows in the vector represt different features of the word. The embedding layer is a mapping between input word and a vector of length 512 in our case. 
+
 ![Embeddings](../assets/Embeddings.png)
+
+We make use of <a href="https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html">```nn.Embeddings```</a> provided by PyTorch, which initializes an embedding layer with random weights by default.
 
 ## Self Attention
 
