@@ -238,7 +238,28 @@ class MultiHeadAttentionBlock(nn.Module):
         return self.w_o(x)
 
 class EncoderBlock(nn.Module):
-    # Definition of one encoder block
+    """
+    Encoder Block for transformer architecture.
+
+    This represents a single encoder block which consists of a self-multihead-attention mechanism and a feed-forward neural network, each followed by a residual connection and Add & Norm layers. The residual connections act as Add & Norm along with skip connections and include dropout for regularization.
+
+    Parameters:
+        - self_attention_block (MultiHeadAttentionBlock): Self-attention block.
+        - feed_forward_block (FeedForwardBlock): Feed-forward block.
+        - dropout (float): Dropout probability applied to residual connections.
+
+    Attributes:
+        - self_attention_block (MultiHeadAttentionBlock): Self-attention block.
+        - feed_forward_block (FeedForwardBlock): Feed-forward block.
+        - residual_connections (nn.ModuleList): List of residual connection modules.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor.
+        - src_mask (torch.Tensor): Mask for source sequence.
+
+    Forward Output:
+        - output (torch.Tensor): Output tensor after passing through the encoder block.
+    """
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float) -> None:
         super().__init__()
         self.self_attention_block = self_attention_block
@@ -252,7 +273,23 @@ class EncoderBlock(nn.Module):
         return x
     
 class Encoder(nn.Module):
-    # Collection of N encoder blocks stacked together
+    """
+    Encoder module composed of multiple stacked encoder blocks.
+
+    Parameters:
+        - layers (nn.ModuleList): List of encoder blocks.
+    
+    Attributes:
+        - layers (nn.ModuleList): List of encoder blocks.
+        - norm (LayerNorm): Layer normalization module.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor.
+        - mask (torch.Tensor): Mask for the input sequence.
+
+    Forward Output:
+        - output (torch.Tensor): Output tensor after passing through the encoder.
+    """
     def __init__(self, layers: nn.ModuleList):
         super().__init__()
         self.layers = layers
@@ -264,7 +301,32 @@ class Encoder(nn.Module):
         return self.norm(x)
 
 class DecoderBlock(nn.Module):
-    # Definition of one decoder block
+    """
+    Decoder Block for transformer architecture.
+
+    The block incorporates a self-attention mechanism, a cross-attention mechanism, and a feed-forward neural network, each followed by a residual connection. The residual connections include dropout for regularization. The decoder block is designed to process input data in a sequence-to-sequence manner, considering both the target sequence and information from the encoder. The self-attention mechanism attends to the target sequence, while the cross-attention mechanism incorporates information from the encoder's output. The block structure includes skip connections and normalization layers.
+
+    Parameters:
+        - self_attention_block (MultiHeadAttentionBlock): Self-attention block.
+        - cross_attention_block (MultiHeadAttentionBlock): Cross-attention block.
+        - feed_forward_block (FeedForwardBlock): Feed-forward block.
+        - dropout (float): Dropout probability applied to residual connections.
+
+    Attributes:
+        - self_attention_block (MultiHeadAttentionBlock): Self-attention block.
+        - cross_attention_block (MultiHeadAttentionBlock): Cross-attention block.
+        - feed_forward_block (FeedForwardBlock): Feed-forward block.
+        - residual_connections (nn.ModuleList): List of residual connection modules.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor.
+        - encoder_output (torch.Tensor): Output from the encoder.
+        - src_mask (torch.Tensor): Mask for the source sequence.
+        - target_mask (torch.Tensor): Mask for the target sequence.
+
+    Forward Output:
+        - output (torch.Tensor): Output tensor after passing through the decoder block.
+    """
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, cross_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float) -> None:
         super().__init__()
         self.self_attention_block = self_attention_block
@@ -279,7 +341,25 @@ class DecoderBlock(nn.Module):
         return x
 
 class Decoder(nn.Module):
-    # Collection of N decoder blocks stacked together
+    """
+    Decoder module composed of multiple stacked decoder blocks.
+
+    Parameters:
+        - layers (nn.ModuleList): List of decoder blocks.
+
+    Attributes:
+        - layers (nn.ModuleList): List of decoder blocks.
+        - norm (LayerNorm): Layer normalization module.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor.
+        - encoder_output (torch.Tensor): Output from the encoder.
+        - src_mask (torch.Tensor): Mask for the source sequence.
+        - target_mask (torch.Tensor): Mask for the target sequence.
+
+    Forward Output:
+        - output (torch.Tensor): Output tensor after passing through the decoder.
+    """
     def __init__(self, layers: nn.ModuleList) -> None:
         super().__init__()
         self.layers = layers
@@ -289,16 +369,33 @@ class Decoder(nn.Module):
         for layer in self.layers:
             x = layer(x, encoder_output, src_mask, target_mask)
         return self.norm(x)
-    
+
 class ProjectionLayer(nn.Module):
-    # The linear layer helps to output target word from given embedding
+    """
+    Projection Layer for transformer architectures.
+
+    The linear layer helps to output target word from given embedding. This layer includes a linear transformation to project the input tensor to the target vocabulary space. The output is processed through a log-softmax function.
+
+    Parameters:
+        - embedding_dim (int): Dimensionality of input embeddings.
+        - vocab_size (int): Size of the target vocabulary.
+
+    Attributes:
+        - proj (nn.Linear): Linear transformation for projection.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor.
+
+    Forward Output:
+        - output (torch.Tensor): Log-softmax output after projection.
+    """
     def __init__(self, embedding_dim: int, vocab_size: int) -> None:
         super().__init__()
         self.proj = nn.Linear(embedding_dim, vocab_size)
 
     def forward(self, x):
         return torch.log_softmax(self.proj(x), dim=-1)
-    
+
 class Transformer(nn.Module):
     # Definition of transformer architecture
     def __init__(self, encoder: Encoder, decoder: Decoder, src_embeddings: InputEmbeddings, target_embeddings: InputEmbeddings, src_pos: PositionalEncoding, target_pos: PositionalEncoding, projection: ProjectionLayer):
