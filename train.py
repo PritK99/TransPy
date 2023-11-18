@@ -9,6 +9,9 @@ from tokenizers.models import WordLevel
 from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
 
+from dataset import BilingualDataset
+from model import build_transformer
+
 def get_all_sentences(dataset, lang):
     """
     Generator function to extract sentences from a dataset for a specified language.
@@ -54,4 +57,28 @@ def get_dataset(config):
     src_tokenizer = get_or_build_tokenizer(config, dataset, config["src_lang"])
     tgt_tokenizer = get_or_build_tokenizer(config, dataset, config["tgt_lang"])
 
-    training_data, validation_data = random_split(dataset, [int(0.9*len(dataset)), len(dataset)-int(0.9*len(dataset))])
+    training_data_raw, validation_data_raw = random_split(dataset, [int(0.9*len(dataset)), len(dataset)-int(0.9*len(dataset))])
+
+    training_data = BilingualDataset(training_data_raw, src_tokenizer, tgt_tokenizer, config["src_lang"], config["tgt_lang"], config["max_seq_len"])
+    validation_data = BilingualDataset(validation_data_raw, src_tokenizer, tgt_tokenizer, config["src_lang"], config["tgt_lang"], config["max_seq_len"])
+
+    max_src_len = 0
+    max_tgt_len = 0
+
+    for item in dataset:
+        src_ids = src_tokenizer.encode(item["translation"][config["src_lang"]]).ids
+        max_src_len = max(max_src_len, len(src_ids))
+        tgt_ids = tgt_tokenizer.encode(item["translation"][config["tgt_lang"]]).ids
+        max_tgt_len = max(max_tgt_len, len(tgt_ids))
+
+    print(f'Max length of source sentence: {max_src_len}')
+    print(f'Max length of target sentence: {max_tgt_len}')
+
+    train_dataloader = DataLoader(training_data, batch_size=config["batch_size"], shuffle=True)
+    validation_dataloader = DataLoader(training_data, batch_size=1, shuffle=True)
+
+    return train_dataloader, validation_dataloader, src_tokenizer, tgt_tokenizer
+
+def get_model(config, src_vocab_len, tgt_vocab_len):
+    model = build_transformer(src_vocab_len, tgt_vocab_len, config["max_seq_len"], config["max_seq_len"], config["embedding_dim"])
+    return model
