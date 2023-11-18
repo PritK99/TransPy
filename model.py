@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import math
 
-
 class InputEmbeddings(nn.Module):
     """
     Input Embeddings module for mapping input words to vectors.
