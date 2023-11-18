@@ -1,16 +1,15 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import random_split
+from torch.utils.data import random_split, DataLoader, Dataset
+from pathlib import Path
 
 from datasets import load_dataset
 from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
-from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import WordLevelTrainer
+from tokenizers.pre_tokenizers import Whitespace
 
-from pathlib import Path
-
-def get_sentences(dataset, lang):
+def get_all_sentences(dataset, lang):
     """
     Generator function to extract sentences from a dataset for a specified language.
 
@@ -21,8 +20,8 @@ def get_sentences(dataset, lang):
     Yields:
         - sentence (str): Extracted sentence for the specified language.
     """
-    for entry in dataset:
-        yield entry['translation'][lang]
+    for item in dataset:
+        yield item['translation'][lang]
 
 def get_or_build_tokenizer(config, dataset, lang):
     """
@@ -41,33 +40,18 @@ def get_or_build_tokenizer(config, dataset, lang):
     if not Path.exists(tokenizer_path):
         tokenizer = Tokenizer(WordLevel(unk_token='[UNK]'))
         tokenizer.pre_tokenizer = Whitespace()
-        trainer = WordLevelTrainer(special_tokens=['[SOS]', '[UNK]', '[EOS]', '[PAD]'], min_frequency = 2)
-        tokenizer.train_from_iterator(get_sentences(dataset, lang), trainer=trainer)
-        tokenizer.save(str(tokenizer_path))
+        trainer = WordLevelTrainer(special_tokens = ['[UNK]', '[PAD]', '[SOS]', '[EOS]'])
+        tokenizer.train_from_iterator(get_all_sentences(dataset, lang), trainer=trainer)
     else:
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
-    
+
     return tokenizer
 
 def get_dataset(config):
-    """
-    Fetches and preprocesses a dataset, including splitting it into training and validation sets.
+    dataset_name = "opus_books"
+    dataset = load_dataset(dataset_name, f'{config["src_lang"]}-{config["tgt_lang"]}', split='train')
 
-    Parameters:
-        - config (Dict): Configuration dictionary containing dataset and language information.
+    src_tokenizer = get_or_build_tokenizer(config, dataset, config["src_lang"])
+    tgt_tokenizer = get_or_build_tokenizer(config, dataset, config["tgt_lang"])
 
-    Returns:
-        - training_dataset (Dataset): Training dataset.
-        - validation_dataset (Dataset): Validation dataset.
-        - src_tokenizer (Tokenizer): Tokenizer for source language.
-        - target_tokenizer (Tokenizer): Tokenizer for target language.
-    """
-    dataset_name = 'opus_books'
-
-    # Load opus books dataset and split in into training and validation dataset
-    dataset = load_dataset(dataset_name, f'{config["lang_src"]}-{config["lang_target"]}', split='train')
-    training_dataset, validation_dataset = random_split(dataset, [int(0.9*len(dataset)), int(0.1*len(dataset))])
-
-    # Call build or get Tokenizer
-    src_tokenizer = get_or_build_tokenizer(config, dataset, config["lang_src"])
-    target_tokenizer = get_or_build_tokenizer(config, dataset, config["lang_target"])
+    training_data, validation_data = random_split(dataset, [int(0.9*len(dataset)), len(dataset)-int(0.9*len(dataset))])
