@@ -22,13 +22,12 @@ The transformer architecture is based on ideas of attention and CNNs. The encode
 
 The fundamental blocks of transformer architecture are:
 
-* Embeddings and Positional Encodings
-* Self Attention
+* Embeddings 
+* Positional Encodings
+* Add & Norm (Layer Normalization & Residual Connection)
 * Multi-Head Attention
 
-## Embeddings and Positional Encodings
-
-### Embeddings
+## Embeddings
 
 Neural Networks can understand patterns in anything but numbers. Hence we need to convert our input to a vector. There are two ways to map input sequence to vectors:
 
@@ -39,7 +38,28 @@ The idea behind word embeddings is that the number of rows in the vector represt
 
 ![Embeddings](../assets/Embeddings.png)
 
-We make use of <a href="https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html">```nn.Embeddings```</a> provided by PyTorch, which initializes an embedding layer with random weights by default.
+We make use of <a href="https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html">nn.Embeddings</a> provided by PyTorch, which initializes an embedding layer with random weights by default.
+
+## Positional Encodings
+
+In sequence to sequence tasks, the relative order of your data is extremely important to its meaning. Consider the following example where change in order of data leads to different meaning.
+
+Sequence 1: ```The cat chased the mouse.```
+
+Sequence 2: ```The mouse chased the cat.```
+
+In case of RNNs, the order was maintained by recurrence. However, in transformers we eliminated recurrence by squashing input together. Thus, we make use of positional encodings which allow transformers to capture positional information.
+
+![Positional Encodings](../assets/Positional.png)
+
+The idea behind positional encoding is that it should have following characterisitics:
+
+* It should output a unique encoding for each time-step
+* Distance between any two time-steps should be consistent across sentences with different lengths.
+* It should generalize to longer sentences without any efforts. Its values should be bounded.
+* It must be deterministic.
+
+Positional encoding is not represent as number. Instead, it’s a 512-dimensional vector that contains information about a specific position in a sentence. This vector is used to equip each word with information about its position in a sentence. In other words, we enhance the model’s input to inject the order of words. Now the input itself contains both semantic and positional meaning.
 
 ## Self Attention
 
@@ -71,27 +91,9 @@ Unlike Self Attention, we use weight matrices ```Wq```, ```Wk```, ```Wv``` to co
 
 Additionally, we feed the entire input sequence to all the heads. However the embeddings that all these heads see are different. This is what leads them to understand different aspects of input sequence.
 
-Q: intresting questions about the words in sentence
+Q: interesting questions about the words in sentence
 K: qualities of words 
 V: specific representation of the word
-
-## Transformer Architecture
-
-<img src = "../assets/Transformer-architecture.png" alt = "Transformer-Architecture">
-
-## Positional Encoding
-
-In sequence to sequence tasks, the relative order of your data is extremely important to its meaning. Consider the following example where change in order of data leads to different meaning.
-
-Sequence 1: ```The cat chased the mouse.```
-
-Sequence 2: ```The mouse chased the cat.```
-
-In case of RNNs, the order was maintained by recurrence. However, in transformers we eliminated recurrence by squashing input together. Thus, we make use of positional encodings which allow transformers to capture positional information.
-
-The equation for positional encodings is: 
-
-<img src = "../assets/Positional.png" alt = "Positional Encoding">
 
 ## References
 

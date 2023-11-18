@@ -6,7 +6,7 @@ import math
 
 class InputEmbeddings(nn.Module):
     """
-    Input Embeddings module
+    Input Embeddings module for mapping input words to vectors.
 
     This module initializes an embedding layer for representing input sequences. It scales the embeddings by the square root of the embedding dimension.
 
@@ -31,49 +31,62 @@ class InputEmbeddings(nn.Module):
 
 class PositionalEncoding(nn.Module):
     """
-    Positional Embedding module for use in transformer architectures.
+    Positional Encoding module for adding positional information to input sequences.
 
-    This module initializes an embedding layer for representing the positional information of input sequences. It scales the embeddings by the square root of the embedding dimension, as suggested in the original transformer paper.
+    This module generates and adds positional encodings to input sequences. The positional encodings are constructed based on the sine and cosine functions. The positional encodings are added to embeddings to enhance the input to encoder. Here, we use a modified formula involving exponentiation and logarithm for numerical stability.
 
     Parameters:
-        - embedding_dim (int): The dimensionality of the positional embeddings.
-        - vocab_size (int): The size of the vocabulary, i.e., the maximum number of positions.
+        - embedding_dim (int): The dimensionality of the input embeddings.
+        - seq_len (int): The maximum sequence length for which positional encodings will be generated.
+        - dropout (float): The dropout probability applied to the positional encodings.
+
+    Attributes:
+        - pe (torch.Tensor): The positional encoding matrix of shape (1, seq_len, embedding_dim). This is Not Learnable.
 
     Forward Input:
-        - x (torch.Tensor): Input tensor representing the positions to be embedded.
+        - x (torch.Tensor): Input tensor representing the sequence embeddings.
 
     Forward Output:
-        - embeddings (torch.Tensor): Positional embeddings scaled by sqrt(embedding_dim).
+        - x (torch.Tensor): Sequence embeddings with added positional encodings.
     """
-    def __init__(self, embedding_dim, seq_len, dropout):
+    def __init__(self, embedding_dim: int, seq_len: int):
         super().__init__()
         self.embedding_dim = embedding_dim
         self.seq_len = seq_len
-        self.dropout = nn.Dropout(dropout)
-
-        # Creating the positional encoding matrix of shape (seq_len, embedding_dim)
-        pe = torch.zeros(seq_len, embedding_dim)
-
-        # Creating a vector of length (seq_len, 1)
+        pe = torch.zeros(seq_len, embedding_dim) # Creating the positional encoding matrix of shape (seq_len, embedding_dim)
+        
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
         denominator = torch.exp(torch.arange(0,seq_len,2).float()*(-math.log(10000.0) / embedding_dim))
 
         pe[:, ::2] = torch.sin(position*denominator)
         pe[:, 1::2] = torch.cos(position*denominator)
 
-        # Converting (seq_len, embedding_dim) to (1, seq_len, embedding_dim)
         pe = pe.unsqueeze(0)
-
         self.register_buffer('pe', pe)
     
     def forward(self, x):
-
-        # Adding embeddings with positional encodings. 
-        # x.shape[1] helps to add positional encodings for the positions that are present in the actual input sequence
         x = x + (self.pe[:, :x.shape[1],:]).requires_grad_(False)
-        return self.dropout(x)
+        return x
 
 class LayerNorm(nn.Module):
+    """
+    Layer Normalization module for stabilizing training in neural networks.
+
+    This module performs Layer Normalization on input tensors. It ensures that the mean of all activations for a given layer is approximately 0, and the standard deviation is approximately 1, helping in stable and efficient training.
+
+    Parameters:
+        - epsilon (float): A small constant added to the denominator for numerical stability.
+    
+    Attributes:
+        - alpha (nn.Parameter): Learnable scaling parameter initialized to 1.
+        - beta (nn.Parameter): Learnable shifting parameter initialized to 0.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor to be layer-normalized.
+
+    Forward Output:
+        - output (torch.Tensor): Layer-normalized tensor after scaling and shifting.
+    """
     def __init__(self, epsilon=10**-6):
         super().__init__()
         self.epsilon = epsilon
@@ -81,25 +94,103 @@ class LayerNorm(nn.Module):
         self.beta = nn.Parameter(torch.zeros(1))
     
     def forward(self, x):
-        # Performing Layer Normalization where we make mean of all activations for given layer equal to 0 and standard deviation approximately equal to 1 which helps to train more stably
         mean = x.mean(dim = -1, keepdim = True)
         std = x.std(dim = -1, keepdim = True)
         return (self.alpha)*((x - mean)/(std + self.epsilon)) + self.beta
-    
+
 class FeedForwardBlock(nn.Module):
-    def __init__(self, embedding_dim, d_ff, dropout):
+    """
+    Feed-Forward Block module for sequence-to-sequence models.
+
+    This module represents a neural network block with two linear layers and a ReLU activation function. The feed-forward block processes input sequences by applying a linear transformation, a non-linear activation (ReLU), dropout for regularization, and another linear transformation. Feed forward block is simple neural network of 3 layers [embedding_dim, d_ff, embedding_dim]
+
+    Parameters:
+        - embedding_dim (int): The dimensionality of the input and output embeddings.
+        - d_ff (int): The dimensionality of the intermediate (hidden) layer.
+        - dropout (float): The dropout probability applied to the intermediate layer.
+
+    Attributes:
+        - linear_1 (nn.Linear): First linear layer transforming input to the hidden dimension.
+        - dropout (nn.Dropout): Dropout layer for regularization.
+        - linear_2 (nn.Linear): Second linear layer transforming the hidden dimension back to the original embedding dimension.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor representing sequence embeddings.
+
+    Forward Output:
+        - output (torch.Tensor): Sequence embeddings after passing through the feed-forward block.
+    """
+    def __init__(self, embedding_dim: int, d_ff: int, dropout: float):
         super().__init__()
-        # Feed forward block is simple neural network of 3 layers (embedding_dim, d_ff, embedding_dim)
         self.linear_1 = nn.Linear(embedding_dim, d_ff)
         self.dropout = nn.Dropout(dropout)
         self.linear_2 = nn.Linear(d_ff, embedding_dim)
     
     def forward(self, x):
         return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))
-    
+
+class ResidualConnection(nn.module):
+    """
+    Residual Connection module for skip connections in architecture.
+
+    Residual connections reduce vanishing gradients problem by allowing the direct flow of information from one layer to another. It consists of layer normalization, dropout for regularization, and the addition of the original input to the output of a sublayer.
+
+    Parameters:
+        - dropout (float): The dropout probability applied to the residual connection.
+
+    Attributes:
+        - norm (LayerNorm): Layer normalization module for normalizing the input.
+        - dropout (nn.Dropout): Dropout layer for regularization.
+
+    Forward Input:
+        - x (torch.Tensor): Input tensor to be passed through the residual connection.
+        - sublayer (nn.Module): Sublayer module to apply on the normalized and dropout-adjusted input.
+
+    Forward Output:
+        - output (torch.Tensor): Output tensor after applying the residual connection.
+    """
+    def __init__(self, dropout: float):
+        super().__init__()
+        self.norm = LayerNorm()
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, sublayer):
+        return x + self.dropout(sublayer(self.norm(x)))
+
 class MultiHeadAttentionBlock(nn.Module):
-    # Definition of Multi-Head attention blocks
-    def __init__(self, embedding_dim, num_heads, dropout):
+    """
+    Multi-Head Attention Block module for transformer architecture.
+
+    The block comprises linear transformations for keys, queries, and values, along with an output linear layer. The attention mechanism is implemented through a static method. During the forward pass, input key, query, and value tensors are transformed and reshaped to accommodate multiple attention heads. The attention mechanism is applied, and the resulting tensor is reshaped and passed through an output linear layer.
+
+    Parameters:
+        - embedding_dim (int): Dimensionality of input and output embeddings.
+        - num_heads (int): Number of attention heads.
+        - dropout (float): Dropout probability applied to attention scores.
+
+    Attributes:
+        - embedding_dim (int): Dimensionality of input and output embeddings.
+        - num_heads (int): Number of attention heads.
+        - dropout (nn.Dropout): Dropout layer for attention scores.
+        - d_k (int): Dimensionality of each head.
+        - w_k (nn.Linear): Linear transformation for keys.
+        - w_q (nn.Linear): Linear transformation for queries.
+        - w_v (nn.Linear): Linear transformation for values.
+        - w_o (nn.Linear): Linear transformation for the output.
+
+    Static Methods:
+        - attention(query, key, value, mask, dropout): Perform scaled dot-product attention.
+
+    Forward Input:
+        - k (torch.Tensor): Key tensor.
+        - q (torch.Tensor): Query tensor.
+        - v (torch.Tensor): Value tensor.
+        - mask (torch.Tensor, optional): Mask to apply to attention scores.
+
+    Forward Output:
+        - output (torch.Tensor): Output tensor after multi-head attention.
+    """
+    def __init__(self, embedding_dim: int, num_heads: int, dropout: float):
         super().__init__()
         self.embedding_dim = embedding_dim
         self.num_heads = num_heads
@@ -114,47 +205,38 @@ class MultiHeadAttentionBlock(nn.Module):
         self.w_v = nn.Linear(embedding_dim, embedding_dim)
 
         self.w_o = nn.Linear(embedding_dim, embedding_dim)
-
-    # Static method allows us to call this function without defining an object
+    
     @staticmethod
     def attention(query, key, value, mask, dropout: nn.Dropout):
         d_k = query[-1]
 
         attention_scores = (query @ key.transpose(-2,-1)) / math.sqrt(d_k)
+
         if (mask is not None):
             attention_scores.masked_fill(mask == 0, -1e9)
+
         attention_scores = attention_scores.softmax(dim = -1)
+
         if (dropout is not None):
             attention_scores = dropout(attention_scores)
 
-        return (attention_scores@value) , attention_scores
+        return (attention_scores @ value) , attention_scores
 
     def forward(self, k, q, v, mask = None):
-
         key = self.w_k(k)
         query = self.w_q(q)
         value = self.w_v(v)
         
         key = key.view(key.shape[0], key.shape[1], self.num_heads, self.d_k).transpose(1,2)
         query = query.view(query.shape[0], query.shape[1], self.num_heads, self.d_k).transpose(1,2)
-        value = value.view(value.shape[0], value.shape[1], self.num_heads, self.d_k).transpose(1,2)
+        value = value.view(value.shape[0], value.shape[1], self.num_heads, self.d_k).transpose(1,2)     #transpose allows us to expose the dimensions (seq_len, d_k) which makes it convenient to deal with attention.
 
-        x, self.attention_scoress = MultiHeadAttentionBlock.attention(query, key, value, mask, self.dropout)
+        x, self.attention_scores = MultiHeadAttentionBlock.attention(query, key, value, mask, self.dropout)     #we call the static attention function
 
-        x = x.transpose(1,2).contigous().view(x.shape[0],-1,self.num_heads*self.d_k)
+        x = x.transpose(1,2).contiguous().view(x.shape[0],-1,self.num_heads*self.d_k)
 
         return self.w_o(x)
-    
-class ResidualConnection(nn.module):
-    # Residual connections help us to tackle vanishing gradients problem
-    def __init__(self, dropout):
-        super().__init__()
-        self.norm = LayerNorm()
-        self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, sublayer):
-        return x + self.dropout(sublayer(self.norm(x)))
-    
 class EncoderBlock(nn.Module):
     # Definition of one encoder block
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float) -> None:
