@@ -4,6 +4,35 @@ from torch.utils.data import DataLoader, Dataset
 from typing import Any
 
 class BilingualDataset(Dataset):
+    """
+    Dataset class for handling bilingual data in transformer models. This involves preprocessing the dataset and converting it into tensor. This also involves adding special tokens such as PAD, SOS, EOS to data.
+
+    Parameters:
+        - dataset (List[Dict]): List of dictionary entries representing the dataset.
+        - src_tokenizer (Tokenizer): Tokenizer for the source language.
+        - tgt_tokenizer (Tokenizer): Tokenizer for the target language.
+        - src_lang (str): Language key indicating the source language.
+        - tgt_lang (str): Language key indicating the target language.
+        - max_seq_len (int): Maximum sequence length for padding.
+
+    Attributes:
+        - dataset (List[Dict]): List of dictionary entries representing the dataset.
+        - src_tokenizer (Tokenizer): Tokenizer for the source language.
+        - tgt_tokenizer (Tokenizer): Tokenizer for the target language.
+        - src_lang (str): Language key indicating the source language.
+        - tgt_lang (str): Language key indicating the target language.
+        - max_seq_len (int): Maximum sequence length for padding.
+        - sos_token (torch.Tensor): Tensor representing the [SOS] token for both source and target languages.
+        - eos_token (torch.Tensor): Tensor representing the [EOS] token for both source and target languages.
+        - pad_token (torch.Tensor): Tensor representing the [PAD] token for both source and target languages.
+
+    Methods:
+        - __len__(self): Returns the length of the dataset.
+        - __getitem__(self, index: Any): Retrieves a specific item from the dataset.
+
+    Returns:
+        - dict: A dictionary containing various elements required for training or evaluation.
+    """
     def __init__(self, dataset, src_tokenizer, tgt_tokenizer, src_lang, tgt_lang, max_seq_len):
         super().__init__()
         self.dataset = dataset
@@ -76,6 +105,14 @@ class BilingualDataset(Dataset):
         }
     
 def causal_mask(size):
+    """
+    Generates a causal (autoregressive) mask for self-attention mechanisms in transformer models.
+
+    Parameters:
+        - size (int): Size of the sequence, determining the dimensions of the mask.
+
+    Returns:
+        - torch.Tensor: Binary mask tensor where positions above the main diagonal are set to 1, and positions below are set to 0.
+    """
     mask = torch.triu(torch.ones(1, size, size), diagonal = 1).type(torch.int)
     return mask == 0
-
