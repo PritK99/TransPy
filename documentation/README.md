@@ -129,6 +129,10 @@ The Projection Layer is like the finishing touch in a transformer model. Its job
 
 It is analogous to how we convert our thoughts into words and then speak so that the other person understands our thoughts.
 
+## Tokenizer
+
+A tokenizer is a component which comes before embeddings layer. Tokenizer is responsible for breaking the input in tokens and associating a unique index in vocabulory to each word. This index is passed to embedding layer, which in turn maps it to 512-dimensional vector. The tokenizer also handles the inclusion of special tokens like PAD (padding), SOS (start of sequence), EOS (end of sequence), etc. 
+
 ## References
 
 * <a href="https://github.com/hkproj/transformer-from-scratch-notes/tree/main">GitHub Link</a> to transformers-from-scratch-notes repository.

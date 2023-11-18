@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 
 class BilingualDataset(Dataset):
     def __init__(self, dataset, src_tokenizer, target_tokenizer, src_lang, target_lang, max_seq_len) -> None:
-        super.__init__()
+        super().__init__()
 
         self.dataset = dataset
         self.src_tokenizer = src_tokenizer
