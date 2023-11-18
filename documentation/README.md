@@ -133,6 +133,16 @@ It is analogous to how we convert our thoughts into words and then speak so that
 
 A tokenizer is a component which comes before embeddings layer. Tokenizer is responsible for breaking the input in tokens and associating a unique index in vocabulory to each word. This index is passed to embedding layer, which in turn maps it to 512-dimensional vector. The tokenizer also handles the inclusion of special tokens like PAD (padding), SOS (start of sequence), EOS (end of sequence), etc. 
 
+## Training & Inference
+
+The way training and inference takes place in transformers is slightly different. In the decoding process of a sequence-to-sequence model, such as in machine translation, the decoder is responsible for generating a sequence of words in the target language. 
+
+During the training phase, this autoregressive process is simulated using a technique known as "teacher forcing." The ground truth sentence, with a special [SOS] (Start of Sentence) symbol prepended, is provided as input. Simultaneously, the same sentence, with [EOS] symbols appended, is used as the output label. This allows the model to know the entire input and output during training, aiding in the learning process. The model predicts the next word at each step based on the ground truth sequence, helping it learn to generate accurate predictions. But all of this is happening in a single time stamp. 
+
+Additionally, to prevent the model from looking ahead during training and potentially "cheating," a mask is applied to the self-attention mechanism. This mask is called causal mask and it ensures that the attention mechanism only considers the left context, preventing the model from considering words that come after the current position in the sequence. In essence, the decoder learns to generate coherent and accurate sequences by predicting one word at a time, with the aid of teacher forcing and attention mechanism masking during the training phase.
+
+However, during inferencing, this generation occurs incrementally, starting with an empty sequence and predicting each word one at a time until the model produces the ```[EOS]``` (End of Sentence) token, indicating the completion of the sentence. During this autoregressive generation, the model predicts the next word based on the words it has already generated. Common strategies for deciding the next token include greedy decoding, where the most probable word is chosen at each step, and beam search, which considers multiple possible sequences and selects the most likely one.
+
 ## References
 
 * <a href="https://github.com/hkproj/transformer-from-scratch-notes/tree/main">GitHub Link</a> to transformers-from-scratch-notes repository.
