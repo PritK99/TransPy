@@ -26,6 +26,9 @@ The fundamental blocks of transformer architecture are:
 * Positional Encodings
 * Add & Norm (Layer Normalization & Residual Connection)
 * Multi-Head Attention
+* Encoder & EncoderBlock
+* Decoder & DecoderBlock
+* Projection Layer
 
 ## Embeddings
 
@@ -79,6 +82,16 @@ Each of the input word is associated with a query, key and value pair. Thus ```A
 
 Very similar to the idea of databases, query for each word is a question, how relevant is this word to context. This query is compared with keys of all words and likewise their values are extracted. The summation of these values give the attention representation for the given word with respect to all other words in the sentence.
 
+```
+Q: interesting questions about the words in sentence
+```
+```
+K: qualities of words 
+```
+```
+V: specific representation of the word
+```
+
 Additionally, Self Attention does not require any new learnable parameters since it uses embeddings and positional encodings. Also, we use masks in Self Attention to avoid interaction of few words (for eg. PAD token).
 
 ## Multi-Head Attention
@@ -91,15 +104,31 @@ Unlike Self Attention, we use weight matrices ```Wq```, ```Wk```, ```Wv``` to co
 
 Additionally, we feed the entire input sequence to all the heads. However the embeddings that all these heads see are different. This is what leads them to understand different aspects of input sequence.
 
-```
-Q: interesting questions about the words in sentence
-```
-```
-K: qualities of words 
-```
-```
-V: specific representation of the word
-```
+## Encoder & EncoderBlock
+
+An Encoder's role is to capture contextual information from the input sequence, allowing the transformer model to understand and represent relationships between different elements in the data. This is analogous to our system of hearing, where we hear natural language and understand the meaning of that data. 
+
+Encoder is made by stacking ```Nx``` numbers of Encoder Blocks. The stacked nature of Encoder Blocks enables the model to learn hierarchical and increasingly abstract features from the input.
+
+An Encoder Block consists of a self-attention mechanism, which enables the model to attend to different positions in the input sequence when encoding a specific element. Additionally, the encoder block includes a feed-forward neural network, which introduces non-linear transformations. Residual connections are employed in encoder blocks to facilitate the flow of information, and layer normalization is often applied for improved training stability.
+
+## Decoder & DecoderBlock
+
+The Decoder is responsible for generating meaningful output sequences based on the encoded input information. This is similar to how we speak after understanding what other person has said i.e. we develop thoughts and responses for the input natural language.
+
+Dencoder is made by stacking ```Ny``` numbers of Encoder Blocks. The decoder block, employs self-attention, cross-attention, and feed-forward mechanisms to capture dependencies and context, ensuring the generation of accurate and contextually relevant output.
+
+The decoder block incorporates three main components: a self-attention mechanism, a cross-attention mechanism, and a feed-forward neural network.
+
+The self-attention mechanism enables the model to attend to different positions in the target sequence while decoding a specific element, capturing dependencies within the output. The cross-attention mechanism allows the model to consider information from the encoded input sequence, facilitating the generation of context-aware output.
+Similar to encoder blocks, residual connections are employed within decoder blocks to enable smoother information flow, and layer normalization is applied for training stability.
+
+## Projection layer
+
+The Projection Layer is like the finishing touch in a transformer model. Its job is to make sure that the information the model learned is translated into words we understand. It transforms the model's encoded knowledge to match the words in our language, helping the model generate sentences that make sense and have the right probabilities for each word. It's the last step in turning the model's understanding into meaningful and well-structured sentences.
+
+It is analogous to how we convert our thoughts into words and then speak so that the other person understands our thoughts.
+
 ## References
 
 * <a href="https://github.com/hkproj/transformer-from-scratch-notes/tree/main">GitHub Link</a> to transformers-from-scratch-notes repository.

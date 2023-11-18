@@ -397,7 +397,40 @@ class ProjectionLayer(nn.Module):
         return torch.log_softmax(self.proj(x), dim=-1)
 
 class Transformer(nn.Module):
-    # Definition of transformer architecture
+    """
+    Transformer architecture consisting of an encoder, decoder, and projection layer.
+
+    Parameters:
+        - encoder (Encoder): Encoder module.
+        - decoder (Decoder): Decoder module.
+        - src_embeddings (InputEmbeddings): Embedding layer for source sequences.
+        - target_embeddings (InputEmbeddings): Embedding layer for target sequences.
+        - src_pos (PositionalEncoding): Positional encoding for source sequences.
+        - target_pos (PositionalEncoding): Positional encoding for target sequences.
+        - projection (ProjectionLayer): Projection layer for final output.
+
+    Forward Input (for encoding):
+        - src (torch.Tensor): Source sequence tensor.
+        - src_mask (torch.Tensor): Mask for source sequence.
+
+    Forward Output (for encoding):
+        - output (torch.Tensor): Encoded representation of the source sequence.
+
+    Forward Input (for decoding):
+        - encoder_output (torch.Tensor): Output from the encoder.
+        - target (torch.Tensor): Target sequence tensor.
+        - src_mask (torch.Tensor): Mask for the source sequence.
+        - target_mask (torch.Tensor): Mask for the target sequence.
+
+    Forward Output (for decoding):
+        - output (torch.Tensor): Decoded representation of the target sequence.
+
+    Forward Input (for projection):
+        - x (torch.Tensor): Input tensor.
+
+    Forward Output (for projection):
+        - output (torch.Tensor): Log-softmax output after projection.
+    """
     def __init__(self, encoder: Encoder, decoder: Decoder, src_embeddings: InputEmbeddings, target_embeddings: InputEmbeddings, src_pos: PositionalEncoding, target_pos: PositionalEncoding, projection: ProjectionLayer):
         super().__init__()
         self.encoder = encoder
@@ -421,9 +454,24 @@ class Transformer(nn.Module):
     def project (self, x):
         return self.projection(x)
 
-# Driver function to build transformer object
 def build_transformer(src_vocab_size: int, target_vocab_size: int, src_seq_len: int, target_seq_len: int, embedding_dim: int = 512, num_blocks: int = 6, num_heads: int = 8, dropout: float = 0.1, d_ff: int = 2048):
+    """
+    Builds a transformer model with specified configurations. This is the driver function which will be used by other files to build transformer object.
 
+    Parameters:
+        - src_vocab_size (int): Size of the source vocabulary.
+        - target_vocab_size (int): Size of the target vocabulary.
+        - src_seq_len (int): Maximum length of the source sequence.
+        - target_seq_len (int): Maximum length of the target sequence.
+        - embedding_dim (int): Dimensionality of the embedding layer.
+        - num_blocks (int): Number of encoder and decoder blocks.
+        - num_heads (int): Number of attention heads.
+        - dropout (float): Dropout probability applied throughout the model.
+        - d_ff (int): Dimensionality of the feed-forward layer.
+
+    Returns:
+        - transformer (Transformer): Transformer model.
+    """
     src_embedding = InputEmbeddings(embedding_dim, src_vocab_size)
     target_embedding = InputEmbeddings(embedding_dim, target_vocab_size)
     src_pos = PositionalEncoding(embedding_dim, src_seq_len, dropout)
