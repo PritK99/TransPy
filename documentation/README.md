@@ -91,10 +91,15 @@ Unlike Self Attention, we use weight matrices ```Wq```, ```Wk```, ```Wv``` to co
 
 Additionally, we feed the entire input sequence to all the heads. However the embeddings that all these heads see are different. This is what leads them to understand different aspects of input sequence.
 
+```
 Q: interesting questions about the words in sentence
+```
+```
 K: qualities of words 
+```
+```
 V: specific representation of the word
-
+```
 ## References
 
 * <a href="https://github.com/hkproj/transformer-from-scratch-notes/tree/main">GitHub Link</a> to transformers-from-scratch-notes repository.
