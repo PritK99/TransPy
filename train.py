@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import random_split, DataLoader, Dataset
 from pathlib import Path
+from torch.utils.tensorboard import SummaryWriter
 
 from datasets import load_dataset
 from tokenizers import Tokenizer
@@ -11,6 +12,7 @@ from tokenizers.pre_tokenizers import Whitespace
 
 from dataset import BilingualDataset
 from model import build_transformer
+from config import get_weights_file_path, get_config
 
 def get_all_sentences(dataset, lang):
     """
@@ -51,6 +53,18 @@ def get_or_build_tokenizer(config, dataset, lang):
     return tokenizer
 
 def get_dataset(config):
+    """
+    Fetches and preprocesses opus_books bilingual dataset, creating dataloaders for training and validation.
+
+    Parameters:
+        - config (dict): Configuration parameters.
+
+    Returns:
+        - train_dataloader (DataLoader): Dataloader for training data.
+        - validation_dataloader (DataLoader): Dataloader for validation data.
+        - src_tokenizer (Tokenizer): Tokenizer for source language.
+        - tgt_tokenizer (Tokenizer): Tokenizer for target language.
+    """
     dataset_name = "opus_books"
     dataset = load_dataset(dataset_name, f'{config["src_lang"]}-{config["tgt_lang"]}', split='train')
 
@@ -80,5 +94,37 @@ def get_dataset(config):
     return train_dataloader, validation_dataloader, src_tokenizer, tgt_tokenizer
 
 def get_model(config, src_vocab_len, tgt_vocab_len):
+    """
+    Constructs and returns a transformer model based on the provided configuration and vocabulary lengths.
+
+    Parameters:
+        - config (dict): Configuration parameters.
+        - src_vocab_len (int): Length of the source language vocabulary.
+        - tgt_vocab_len (int): Length of the target language vocabulary.
+
+    Returns:
+        - model: Transformer model.
+    """
     model = build_transformer(src_vocab_len, tgt_vocab_len, config["max_seq_len"], config["max_seq_len"], config["embedding_dim"])
     return model
+
+def train_model(config):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    Path(config["model_folder"]).mkdir(parents=True, exist_ok=True)
+    train_dataloader, validation_dataloader, src_tokenizer, tgt_tokenizer = get_dataset(config)
+    model = get_model(config, src_tokenizer.get_vocab_size, tgt_tokenizer.get_vocab_size).to(device)
+
+    writer = SummaryWriter(config["experiment_name"])
+
+    optimizer = torch.optim.adam(model.parameters(), lr=config["learning_rate"], eps=1e-9)
+
+    initial_epoch = 0
+    global_step = 0
+
+    if config["preload"]:
+        model_filename = get_weights_file_path(config, config["preload"])
+        print(f"Preloading Model: {model_filename}")
+        state = torch.load(model_filename)
+        # Work in Progress
