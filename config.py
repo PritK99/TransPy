@@ -26,7 +26,7 @@ def get_config():
         "batch_size": 8,
         "num_epochs": 20,
         "learning_rate": 10**-4,
-        "max_seq_len": 400,
+        "max_seq_len": 785,
         "embedding_dim": 512,
         "num_heads": 8,
         "src_lang": "en",
