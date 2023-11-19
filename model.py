@@ -54,7 +54,7 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(seq_len, embedding_dim) # Creating the positional encoding matrix of shape (seq_len, embedding_dim)
         
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
-        denominator = torch.exp(torch.arange(0,seq_len,2).float()*(-math.log(10000.0) / embedding_dim))
+        denominator = torch.exp(torch.arange(0,embedding_dim,2).float()*(-math.log(10000.0) / embedding_dim))
 
         pe[:, ::2] = torch.sin(position*denominator)
         pe[:, 1::2] = torch.cos(position*denominator)
@@ -472,9 +472,8 @@ def build_transformer(src_vocab_size: int, target_vocab_size: int, src_seq_len: 
     """
     src_embedding = InputEmbeddings(embedding_dim, src_vocab_size)
     target_embedding = InputEmbeddings(embedding_dim, target_vocab_size)
-    src_pos = PositionalEncoding(embedding_dim, src_seq_len, dropout)
-    target_pos = PositionalEncoding(embedding_dim, target_seq_len, dropout)
-
+    src_pos = PositionalEncoding(embedding_dim, src_seq_len)
+    target_pos = PositionalEncoding(embedding_dim, target_seq_len)
     encoder_blocks = []
 
     for _ in range (num_blocks):
@@ -502,7 +501,6 @@ def build_transformer(src_vocab_size: int, target_vocab_size: int, src_seq_len: 
 
     # xavier_uniform allows us initialize our matrix parameters such that it reduces vanishing gradient problem
     for p in transformer.parameters():
-        if p.dim > 1:
+        if p.dim() > 1:
             nn.init.xavier_uniform_(p)
-    
     return transformer
