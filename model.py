@@ -206,7 +206,7 @@ class MultiHeadAttentionBlock(nn.Module):
     
     @staticmethod
     def attention(query, key, value, mask, dropout: nn.Dropout):
-        d_k = query[-1]
+        d_k = query.shape[-1]
 
         attention_scores = (query @ key.transpose(-2,-1)) / math.sqrt(d_k)
 
@@ -444,7 +444,7 @@ class Transformer(nn.Module):
         src = self.src_pos(src)
         return self.encoder(src, src_mask)
     
-    def decode (self, encoder_output, target, src_mask, target_mask):
+    def decode (self, encoder_output, src_mask, target, target_mask):
         target = self.target_embeddings(target)
         target = self.target_pos(target)
         return self.decoder(target, encoder_output, src_mask, target_mask)
