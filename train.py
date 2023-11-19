@@ -106,7 +106,7 @@ def get_model(config, src_vocab_len, tgt_vocab_len):
     Returns:
         - model: Transformer model.
     """
-    model = build_transformer(src_vocab_len, tgt_vocab_len, config["max_seq_len"], config["max_seq_len"], config["embedding_dim"])
+    model = build_transformer(src_vocab_len, tgt_vocab_len, config["max_seq_len"], config["max_seq_len"], embedding_dim=config["embedding_dim"])
     return model
 
 def train_model(config):
