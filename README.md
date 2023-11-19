@@ -37,9 +37,13 @@ Please refer ```/documentation``` or click <a href="https://github.com/PritK99/T
  ┣ 📂assets                            // Contains all the reference gifs, images
  ┣ 📂documentation                     // Contains documentation and my notes on transformers
  ┃ ┣ 📄README.md
- ┣ 📄model.py                          // Code for Transformer Architecture
- ┣ 📄train.py                          // Tokenizers
- ┣ 📄dataset.py                        // Datasets  
+ ┣ 📄model.py                          // Transformer Architecture
+ ┣ 📄train.py                          // Training loop
+ ┣ 📄dataset.py                        // Loading & Preprocessing Dataset  
+ ┣ 📄config.py 
+ ┣ 📂visualization                     // Contains other visualizations
+ ┃ ┣ 📄embedding.py
+ ┃ ┣ 📄README.md
  ┣ 📄README.md
 ``` 
 
