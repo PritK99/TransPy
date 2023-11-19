@@ -1,11 +1,16 @@
 # Transformers-from-Scratch
 
+<p align="center">
+    <img src="assets/logo.png" alt="Project logo">
+</p>
+
 ## Table of Contents
 
-- [Project](#Transformers-from-Scratch)
+- [Transformers-from-Scratch](#Transformers-from-Scratch)
   - [Table of Contents](#table-of-contents)
-  - [About The Project](#about-the-project)
+  - [About The Project](#about)
   - [Demo](#demo)
+  - [Documentation](#documentation)
   - [File Structure](#file-structure)
   - [Contributors](#contributors)
   - [References](#references)
@@ -14,9 +19,17 @@
 
 ## About
 
-Building a custom Transformer model from scratch in PyTorch for English-to-Spanish translation.
+PyTorch-based custom Transformer model from scratch for English-to-Spanish translation, inspired by the "Attention is All You Need" paper. 
 
-<img src = "./assets/Transformer-architecture.png" alt="The Architecture of Transformer Model">
+<p align="center">
+    <img src="./assets/Transformer-architecture.png" alt="Transformer Architecture">
+</p>
+
+## Demo
+
+## Documentation
+
+Please refer ```/documentation``` or click <a href="https://github.com/PritK99/Transformers-from-Scratch/tree/main/documentation">here</a> for complete documentation of the project
 
 ## File Structure
 ```
@@ -29,6 +42,10 @@ Building a custom Transformer model from scratch in PyTorch for English-to-Spani
  ┣ 📄dataset.py                        // Datasets  
  ┣ 📄README.md
 ``` 
+
+## Contributors
+
+* <a href="https://github.com/PritK99">Prit Kanadiya</a>
 
 ## References
 * <a href="https://www.youtube.com/watch?v=ISNdQcPhsts&t=2729s">YouTube Video</a> by Umar Jamil on developing transformers from scratch.
